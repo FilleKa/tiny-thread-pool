@@ -118,16 +118,28 @@ TEST(ThreadPool, ShouldFinishWorkUponDestruction) {
     // Execute
     {
         ttp::ThreadPool thread_pool(4);
-        thread_pool.Enqueue([&success]() {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            success = true;
-        }, [&callback_success](){
-            callback_success = true;
-        });
+        thread_pool.Enqueue(
+            [&success]() {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                success = true;
+            },
+            [&callback_success]() { callback_success = true; });
         std::this_thread::sleep_for(std::chrono::milliseconds(25));
     }
 
     // Verify
     EXPECT_TRUE(success);
     EXPECT_TRUE(callback_success);
+}
+
+TEST(ThreadPool, ShouldExecuteBoundTask) {
+    // Setup
+    auto square = [](int x) { return x * x; };
+    ttp::ThreadPool thread_pool(4);
+
+    // Execute
+    auto future = thread_pool.Enqueue(std::bind(square, 2));
+
+    // Verify
+    EXPECT_EQ(future.get(), 4);
 }

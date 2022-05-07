@@ -19,14 +19,13 @@ class ThreadPool {
 
     void Enqueue(std::function<void(void)> work, std::function<void(void)> callback);
 
-    template<typename F, typename R = std::result_of_t<F()>>
+    template <typename F, typename R = std::result_of_t<F()>>
     std::future<R> Enqueue(F work);
 
     void ExecuteCallbacks();
     void Wait();
 
   private:
-  
     struct TaskBase {
         virtual void Execute() = 0;
     };

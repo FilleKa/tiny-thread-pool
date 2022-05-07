@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <array>
+#include <thread>
+
 #include "blocking_queue.hpp"
 
 TEST(BlockingQueue, ShouldStartEmpty) {
@@ -70,4 +73,55 @@ TEST(BlockingQueue, ShouldThrowExceptionIfPeekingAnEmptyQueue) {
     } catch (...) {
         FAIL();
     }
+}
+
+TEST(BlockingQueue, ShouldBeThreadSafeWhenPushing) {
+    // Setup
+    ttp::BlockingQueue<int> q;
+    static constexpr size_t thread_count = 10;
+
+    std::array<std::unique_ptr<std::thread>, thread_count> threads; 
+
+    // Execute
+    for (int i = 0; i < thread_count; i++) {
+        threads[i] = std::make_unique<std::thread>([&q](){
+            for (int c = 0; c < 1000; c++) {
+                q.Push(c);
+            }
+        });
+    }
+
+    for (int i = 0; i < thread_count; i++) {
+        threads[i]->join();
+    }
+
+    // Verify
+    EXPECT_EQ(q.Size(), thread_count * 1000);
+}
+
+TEST(BlockingQueue, ShouldBeThreadSafeWhenPopping) {
+    // Setup
+    ttp::BlockingQueue<int> q;
+    static constexpr size_t thread_count = 10;
+    std::array<std::unique_ptr<std::thread>, thread_count> threads; 
+
+    // Execute
+    for (int i = 0; i < thread_count * 1000; i++) {
+        q.Push(i);
+    }
+
+    for (int i = 0; i < thread_count; i++) {
+        threads[i] = std::make_unique<std::thread>([&q](){
+            for (int c = 0; c < 1000; c++) {
+                q.Pop();
+            }
+        });
+    }
+
+    for (int i = 0; i < thread_count; i++) {
+        threads[i]->join();
+    }
+
+    // Verify
+    EXPECT_EQ(q.Size(), 0);
 }
