@@ -10,7 +10,7 @@ ttp::ThreadPool thread_pool(4);
 
 // ...
 
-thread_pool.Enque([](){
+thread_pool.Enqueue([](){
     CreateMeshes()
 }, [](){
     // Perform potential callback on the 
