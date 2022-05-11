@@ -1,6 +1,6 @@
 # Tiny thread pool
 
-While it may not contain every feature, this thread pool is meant to provide the most commonly used features and be easy to use. Tasks can be coupled with a callback that will be invoked on the main thread at a suitable time. It's also possible to utilize std::future to await tasks.
+Lightweight header-only thread pool with the most essential features. Tasks can be coupled with a callback that will be invoked on the main thread at a suitable time. It's also possible to utilize std::future to await tasks.
 
 ## Example
 
