@@ -27,8 +27,9 @@ class BlockingQueue {
     T& Peek() {
         std::lock_guard<std::mutex> lock(mtx_);
 
-        if (queue_.size() == 0)
+        if (queue_.size() == 0) {
             throw std::out_of_range("Out of range");
+        }
 
         return queue_.front();
     }
@@ -36,8 +37,9 @@ class BlockingQueue {
     void Pop() {
         std::lock_guard<std::mutex> lock(mtx_);
 
-        if (queue_.size() == 0)
+        if (queue_.size() == 0) {
             throw std::out_of_range("Out of range");
+        }
 
         return queue_.pop();
     }
