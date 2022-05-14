@@ -1,7 +1,6 @@
 #ifndef TTP_THREAD_POOL_HPP_
 #define TTP_THREAD_POOL_HPP_
 
-#include <atomic>
 #include <condition_variable>
 #include <functional>
 #include <future>
@@ -16,8 +15,6 @@ namespace ttp {
 class ThreadPool {
   public:
     explicit ThreadPool(size_t thread_count) : stopping_(false), current_work_count_(0) {
-        auto hardware_threads = std::thread::hardware_concurrency();
-        thread_count = std::min(thread_count, static_cast<size_t>(hardware_threads));
 
         for (int i = 0; i < thread_count; i++) {
             threads_.emplace_back([this]() {
@@ -27,6 +24,7 @@ class ThreadPool {
 
                     {
                         std::unique_lock<std::mutex> lock(mtx_);
+
                         cond_var_.wait(lock, [=]() { return stopping_ || !work_queue_.Empty(); });
 
                         if (stopping_) {
@@ -58,7 +56,11 @@ class ThreadPool {
     }
 
     ~ThreadPool() {
-        stopping_ = true;
+        {
+            std::unique_lock<std::mutex> lock(mtx_);
+            stopping_ = true;
+        }
+
         cond_var_.notify_all();
 
         for (auto& t : threads_) {
@@ -147,7 +149,7 @@ class ThreadPool {
 
     std::vector<std::thread> threads_;
 
-    std::atomic_bool stopping_;
+    bool stopping_;
 
     size_t current_work_count_;
 
